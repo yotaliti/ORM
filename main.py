@@ -74,4 +74,3 @@ if __name__ == '__main__':
         "Введите имя или ID публициста: ")
     get_shops(
         data)
-git push
