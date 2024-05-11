@@ -4,6 +4,7 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from models import create_tables, Publisher, Book, Shop, Stock, Sale
 from dotenv import load_dotenv
+
 load_dotenv()
 
 NAME_DB = os.getenv('NAME_DB')
@@ -50,15 +51,27 @@ for i in data:
         session.commit()
 
 
-def search_sale(n):
-    subq = session.query(Book).join(Publisher.book).filter(Publisher.name == n).all()
-    subq1 = session.query(Book).join(Publisher.book).filter(Publisher.name == n).subquery()
-    subq2 = session.query(Stock).join(subq1, Stock.id_book == subq1.c.id_book).subquery()
-    subq3 = session.query(Shop).join(subq2, Shop.id_shop == subq2.c.id_shop).all()
-    subq4 = session.query(Sale).join(subq2, Sale.id_stock == subq2.c.id_stock).all()
-    for c in range(len(subq)):
-        print(f'{subq[c]} | {subq3[c]} | {subq4[c]}')
+def get_shops(data):
+    all_data = session.query(
+        Book.title, Shop.name, Sale.price, Sale.date_sale).select_from(Shop).join(Stock).join(Book).join(
+        Publisher).join(
+        Sale)
+    if data.isdigit():
+        result = all_data.filter(
+            Publisher.id_publisher == data).all()
+    else:
+        result = all_data.filter(
+            Publisher.name == data).all()
+    for t, ns, p, d in result:
+        print(
+            f"{t: <40} | {ns: <10} | {p: <8} | {d.strftime('%d-%m-%Y')}")
 
-search_sale('Pearson')
 
 session.close()
+
+if __name__ == '__main__':
+    data = input(
+        "Введите имя или ID публициста: ")
+    get_shops(
+        data)
+git push
